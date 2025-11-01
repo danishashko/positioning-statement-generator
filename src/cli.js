@@ -14,7 +14,16 @@ async function run() {
   console.log(chalk.cyan.bold('\n🎯 POSITIONING STATEMENT GENERATOR'));
   console.log(chalk.gray('Based on April Dunford\'s "Obviously Awesome" framework\n'));
 
-  const engine = new PositioningEngine();
+  // Check for OpenAI API key
+  const apiKey = process.env.OPENAI_API_KEY;
+
+  if (apiKey) {
+    console.log(chalk.green('✨ AI enhancement enabled (GPT-4o-mini)\n'));
+  } else {
+    console.log(chalk.yellow('💡 Set OPENAI_API_KEY env var to enable AI suggestions\n'));
+  }
+
+  const engine = new PositioningEngine(apiKey);
 
   try {
     // Step 1: Product Name
@@ -116,11 +125,58 @@ async function run() {
     // Generate positioning document
     console.log(chalk.cyan.bold('\n🎉 Generating your positioning statement...\n'));
 
+    // Generate AI insights if enabled
+    if (engine.isAIEnabled()) {
+      console.log(chalk.gray('🤖 Generating AI insights...\n'));
+      await engine.generateAIInsights();
+    }
+
     const document = engine.getCompleteDocument();
 
     // Display output
     const formatter = new OutputFormatter(document);
     console.log(formatter.formatCLI());
+
+    // Display AI suggestions if available
+    if (engine.isAIEnabled()) {
+      const suggestions = engine.getAISuggestions();
+      console.log('\n');
+      console.log(chalk.cyan('═'.repeat(70)));
+      console.log(chalk.bold.cyan('           AI INSIGHTS & SUGGESTIONS           '));
+      console.log(chalk.cyan('═'.repeat(70)));
+      console.log('');
+
+      if (suggestions.critique) {
+        console.log(chalk.bold.yellow('💡 Positioning Critique:'));
+        console.log(chalk.white(suggestions.critique));
+        console.log('');
+      }
+
+      if (suggestions.improvedValues.length > 0) {
+        console.log(chalk.bold.green('✨ Improved Value Proposition:'));
+        console.log(chalk.white(`  ${suggestions.improvedValues[0]}`));
+        console.log('');
+      }
+
+      if (suggestions.alternativePositioning.length > 0) {
+        console.log(chalk.bold.blue('🔄 Alternative Positioning Variations:'));
+        suggestions.alternativePositioning.forEach((alt, i) => {
+          console.log(chalk.white(`  ${i + 1}. ${alt}`));
+        });
+        console.log('');
+      }
+
+      if (suggestions.suggestedCategories.length > 0) {
+        console.log(chalk.bold.magenta('📊 Suggested Market Categories:'));
+        suggestions.suggestedCategories.forEach((cat, i) => {
+          console.log(chalk.white(`  ${i + 1}. ${cat}`));
+        });
+        console.log('');
+      }
+
+      console.log(chalk.cyan('═'.repeat(70)));
+      console.log('');
+    }
 
     // Ask for export
     const { exportFormat } = await inquirer.prompt([

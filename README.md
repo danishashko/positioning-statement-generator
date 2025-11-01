@@ -42,6 +42,27 @@ npm install -g positioning-statement-generator
 posgen
 ```
 
+### ✨ AI-Enhanced Mode (Optional)
+
+Set your OpenAI API key to unlock AI-powered insights:
+
+```bash
+# Set API key
+export OPENAI_API_KEY='your-api-key-here'
+
+# Run with AI enhancement
+npx positioning-statement-generator
+```
+
+**AI Features:**
+- 🤖 Intelligent problem inference from competitive alternatives
+- ✨ Value proposition improvement suggestions
+- 💡 Positioning critique from "April Dunford"
+- 🔄 Alternative positioning variations
+- 📊 Market category recommendations
+
+**Cost:** ~$0.01-0.05 per generation (uses GPT-4o-mini)
+
 ## 💡 What You Get
 
 ### ✅ Complete Positioning Document

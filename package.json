@@ -1,6 +1,6 @@
 {
   "name": "positioning-statement-generator",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Nail your product positioning in 10 minutes using April Dunford's Obviously Awesome framework",
   "main": "src/positioning.js",
   "bin": {
@@ -41,6 +41,7 @@
     "chalk": "^4.1.2",
     "cli-table3": "^0.6.5",
     "inquirer": "^8.2.7",
-    "markdown-pdf": "^11.0.0"
+    "markdown-pdf": "^11.0.0",
+    "openai": "^6.7.0"
   }
 }

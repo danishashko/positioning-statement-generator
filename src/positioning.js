@@ -3,8 +3,10 @@
  * Based on April Dunford's "Obviously Awesome" Framework
  */
 
+const AIEnhancer = require('./ai-enhancer');
+
 class PositioningEngine {
-  constructor() {
+  constructor(apiKey = null) {
     this.positioning = {
       productName: '',
       competitiveAlternatives: [],
@@ -12,6 +14,14 @@ class PositioningEngine {
       valueThemes: [],
       targetMarket: '',
       marketCategory: '',
+    };
+    this.ai = new AIEnhancer(apiKey);
+    this.aiSuggestions = {
+      problem: null,
+      improvedValues: [],
+      critique: null,
+      alternativePositioning: [],
+      suggestedCategories: [],
     };
   }
 
@@ -81,7 +91,10 @@ class PositioningEngine {
   generateElevatorPitch2Min() {
     const { productName, competitiveAlternatives, uniqueAttributes, valueThemes, targetMarket, marketCategory } = this.positioning;
 
-    return `You know how ${targetMarket} struggle with ${this.inferProblem()}?
+    // Use AI-inferred problem if available, otherwise use fallback
+    const problem = this.aiSuggestions.problem || this.ai.fallbackInferProblem(competitiveAlternatives);
+
+    return `You know how ${targetMarket} struggle with ${problem}?
 
 Most companies use ${competitiveAlternatives[0]}, but that approach has limitations.
 
@@ -142,22 +155,73 @@ We're built specifically for ${targetMarket} who need ${valueThemes[0]}.`;
   }
 
   /**
+   * Generate AI-enhanced insights
+   */
+  async generateAIInsights() {
+    if (!this.ai.isEnabled()) {
+      return;
+    }
+
+    const { targetMarket, competitiveAlternatives, valueThemes, productName, uniqueAttributes, marketCategory } = this.positioning;
+
+    try {
+      // Infer problem
+      this.aiSuggestions.problem = await this.ai.inferProblem(targetMarket, competitiveAlternatives);
+
+      // Improve value propositions
+      if (valueThemes.length > 0) {
+        const improved = await this.ai.improveValueProp(valueThemes[0], targetMarket);
+        this.aiSuggestions.improvedValues.push(improved);
+      }
+
+      // Critique positioning
+      const statement = this.generatePositioningStatement();
+      this.aiSuggestions.critique = await this.ai.critiquePositioning(statement);
+
+      // Generate alternatives
+      if (valueThemes.length > 0) {
+        this.aiSuggestions.alternativePositioning = await this.ai.generateAlternatives(
+          productName,
+          targetMarket,
+          valueThemes[0],
+          marketCategory
+        );
+      }
+
+      // Suggest categories (if category not set yet)
+      if (uniqueAttributes.length > 0 && valueThemes.length > 0) {
+        this.aiSuggestions.suggestedCategories = await this.ai.suggestCategory(
+          productName,
+          uniqueAttributes,
+          valueThemes,
+          targetMarket
+        );
+      }
+    } catch (error) {
+      console.error('Error generating AI insights:', error.message);
+    }
+  }
+
+  /**
+   * Get AI suggestions
+   */
+  getAISuggestions() {
+    return this.aiSuggestions;
+  }
+
+  /**
+   * Check if AI is enabled
+   */
+  isAIEnabled() {
+    return this.ai.isEnabled();
+  }
+
+  /**
    * Infer problem from competitive alternatives
    */
-  inferProblem() {
-    const { competitiveAlternatives } = this.positioning;
-
-    if (competitiveAlternatives.includes('spreadsheets') || competitiveAlternatives.includes('Excel')) {
-      return 'manual, error-prone processes';
-    }
-    if (competitiveAlternatives.includes('email') || competitiveAlternatives.includes('Slack')) {
-      return 'scattered, unorganized communication';
-    }
-    if (competitiveAlternatives.includes('nothing')) {
-      return 'this problem without any solution';
-    }
-
-    return `inefficient workflows using ${competitiveAlternatives[0]}`;
+  async inferProblem() {
+    const { targetMarket, competitiveAlternatives } = this.positioning;
+    return await this.ai.inferProblem(targetMarket, competitiveAlternatives);
   }
 
   /**
